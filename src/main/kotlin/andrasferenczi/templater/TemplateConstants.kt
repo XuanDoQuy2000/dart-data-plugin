@@ -8,6 +8,7 @@ object TemplateConstants {
     const val MAP_VARIABLE_NAME = "map"
     const val TO_MAP_METHOD_NAME = "toMap"
     const val FROM_MAP_METHOD_NAME = "fromMap"
+    const val APPLY_METHOD_NAME = "apply"
 
     const val KEYMAPPER_VARIABLE_NAME = "keyMapper"
     const val KEY_VARIABLE_NAME = "key"

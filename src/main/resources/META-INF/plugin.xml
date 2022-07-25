@@ -111,5 +111,12 @@
                           anchor="after"
                           relative-to-action="andrasferenczi.action.MapAction"/>
         </action>
+        <action id="andrasferenczi.action.DartApplyAction"
+                class="andrasferenczi.action.DartApplyAction"
+                text="Dart apply method">
+            <add-to-group group-id="GenerateGroup"
+                          anchor="after"
+                          relative-to-action="andrasferenczi.action.FullDataAction"/>
+        </action>
     </actions>
 </idea-plugin>
