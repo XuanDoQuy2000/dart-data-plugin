@@ -227,22 +227,23 @@ private fun Template.addTempleteForObjectType(it: AliasedVariableTemplateParam) 
     addTextSegment(it.publicVariableName)
     addTextSegment(":")
     addSpace()
+    if (it.isNullable) {
+        addTextSegment(TemplateConstants.MAP_VARIABLE_NAME)
 
-    addTextSegment(TemplateConstants.MAP_VARIABLE_NAME)
-
-    withBrackets {
-        "'${it.mapKeyString}'".also { keyParam ->
-            addTextSegment(keyParam)
+        withBrackets {
+            "'${it.mapKeyString}'".also { keyParam ->
+                addTextSegment(keyParam)
+            }
         }
+        addSpace()
+        addTextSegment("==")
+        addSpace()
+        addTextSegment("null")
+        addNewLine()
+        addTextSegment("? null")
+        addNewLine()
+        addTextSegment(": ")
     }
-    addSpace()
-    addTextSegment("==")
-    addSpace()
-    addTextSegment("null")
-    addNewLine()
-    addTextSegment("? null")
-    addNewLine()
-    addTextSegment(": ")
     addTextSegment(varType)
     addTextSegment(".")
     addTextSegment(TemplateConstants.FROM_MAP_METHOD_NAME)
@@ -277,10 +278,15 @@ private fun Template.addTempleteForListType(
         addSpace()
         addTextSegment("as")
         addSpace()
-        addTextSegment("List<dynamic>?")
+        addTextSegment("List<dynamic>")
+        if (it.isNullable) {
+            addTextSegment("?")
+        }
     }
     addNewLine()
-    addTextSegment("?")
+    if (it.isNullable) {
+        addTextSegment("?")
+    }
     addTextSegment(".map")
     withParentheses {
         addTextSegment("(e)")
@@ -302,7 +308,7 @@ private fun Template.addTempleteForListType(
             addSpace()
             addTextSegment(childType)
         } else {
-            val childTypeNullable = childType.last() == '?'
+            val childTypeNullable = childType.lastOrNull() == '?'
             if (childTypeNullable) {
                 addTextSegment("e == null ? null :")
             }
@@ -378,10 +384,15 @@ private fun Template.addTempleteForMapType(
         addSpace()
         addTextSegment("as")
         addSpace()
-        addTextSegment("Map<String, dynamic>?")
+        addTextSegment("Map<String, dynamic>")
+        if (it.isNullable) {
+            addTextSegment("?")
+        }
     }
     addNewLine()
-    addTextSegment("?")
+    if (it.isNullable) {
+        addTextSegment("?")
+    }
     addTextSegment(".map")
     generateChildTempleteOfMapType(childType)
     addComma()
@@ -389,6 +400,7 @@ private fun Template.addTempleteForMapType(
 }
 
 private fun Template.generateChildTempleteOfMapType(childType: String) {
+    val childTypeNullable = childType.lastOrNull() == '?'
     withParentheses {
         addTextSegment("(key, value)")
         addSpace()
@@ -412,16 +424,39 @@ private fun Template.generateChildTempleteOfMapType(childType: String) {
                 addTextSegment(childType)
             } else if (childType.contains("Map")) {
                 withParentheses {
-                    addTextSegment("value as Map<String, dynamic>?")
+                    addTextSegment("value as Map<String, dynamic>")
+                    if (childTypeNullable) {
+                        addTextSegment("?")
+                    }
                 }
-                addTextSegment("?")
+                if (childTypeNullable) {
+                    addTextSegment("?")
+                }
                 addTextSegment(".map")
                 val start = childType.indexOfFirst { c -> c == ',' } + 2  // dont get space Map<String, Model>
                 val end = childType.indexOfLast { c -> c == '>' }
                 val subChildType = childType.substring(start, end)
                 generateChildTempleteOfMapType(subChildType)
+            } else if (childType.contains("List")) {
+                withParentheses {
+                    addTextSegment("(e)")
+                    addSpace()
+                    addTextSegment("=>")
+                    addSpace()
+                    val start = childType.indexOfFirst { c -> c == '<' } + 1  // dont get space Map<String, Model>
+                    val end = childType.indexOfLast { c -> c == '>' }
+                    val subChildType = childType.substring(start, end)
+                    if (subChildType.lastOrNull() == '?') {
+                        addTextSegment("e == null ? null :")
+                    }
+                    addTextSegment(childType)
+                    addTextSegment(".")
+                    addTextSegment(TemplateConstants.FROM_MAP_METHOD_NAME)
+                    withParentheses {
+                        addTextSegment("e as Map<String, dynamic>")
+                    }
+                }
             } else {
-                val childTypeNullable = childType.last() == '?'
                 if (childTypeNullable) {
                     addTextSegment("value == null ? null :")
                 }
